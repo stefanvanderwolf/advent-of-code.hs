@@ -5,13 +5,12 @@ type Millimeters = Int
 
 sheet :: Parsec String st [(Milliseconds, Millimeters)]
 sheet = zip <$> line "Time:" <*> line "Distance:"
-  where line prefix = (string prefix) *> spaces *> many (decimal <* spaces)
-        decimal = read <$> many1 digit
+  where line prefix = (string prefix) *> spaces *> many ((read <$> many1 digit) <* spaces)
 
-race :: Milliseconds -> Milliseconds -> [(Milliseconds, Millimeters)]
-race hold time
-  | hold >= time = [] 
-  | otherwise = (hold, (time - hold) * hold): race (hold + 1) time 
+race' :: Milliseconds -> (Millimeters, Milliseconds) -> Int
+race' hold (time, distance)
+  | hold * (time - hold) > distance = time - hold + 1 - hold 
+  | otherwise = race' (hold + 1) (time, distance)
 
 main = do
   input <- getContents
@@ -20,9 +19,8 @@ main = do
                 Left err -> error "Invalid input"
                 Right sheet -> sheet
 
-  print $ product $ map length (map (\(time, distance) -> (filter ((> distance) . snd) (race 0 time))) races)
+  print $ product $ map (race' 1) races
 
-  let time = (read (foldr (++) "" (map (show . fst) (races))) :: Int)
-  let distance = (read (foldr (++) "" (map (show . snd) (races))) :: Int)
-
-  print $ product $ map length (map (\(time, distance) -> (filter ((> distance) . snd) (race 0 time))) [(time, distance)])
+  let time = (read (foldr (++) "" (map (show . fst) (races))))
+  let distance = (read (foldr (++) "" (map (show . snd) (races))))
+  print (race' 1 (time, distance))
