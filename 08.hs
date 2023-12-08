@@ -28,6 +28,8 @@ main = do
   let navigation' = parse navigation "parsec" input 
 
   print $ fmap (\(Navigation instructions network) -> follow network (=="ZZZ") instructions "AAA") navigation'
+  -- LCM only works here because of the input. If there were any offset this
+  -- won't work.
   print 
-    $ fmap (\(Navigation instructions network) -> foldr lcm 1 (map (follow  network (isSuffixOf "Z") (instructions)) 
+    $ fmap (\(Navigation instructions network) -> foldr lcm 1 (map (follow  network (isSuffixOf "Z") instructions)
       (filter ("A" `isSuffixOf`) (keys network)))) navigation'
